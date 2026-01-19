@@ -306,7 +306,6 @@ const SubscriberDashboard: React.FC<Props> = ({ subscriberId }) => {
             aria-label="Close navigation overlay"
             onClick={() => setIsNavOpen(false)}
           />
-          </div>
         </div>
       )}
 

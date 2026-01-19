@@ -23,6 +23,33 @@ const AppRoot: React.FC = () => {
   const { role, subscriberId } = useAuth();
   const [adminMobileNavOpen, setAdminMobileNavOpen] = useState(false);
   const [adminMobileSectionOpen, setAdminMobileSectionOpen] = useState<string | null>(null);
+  const [adminNotificationsOpen, setAdminNotificationsOpen] = useState(false);
+
+  const adminNotifications = [
+    {
+      id: '1',
+      title: 'New subscriber signup',
+      body: 'A new subscriber account was created.',
+      time: '2 min ago',
+      unread: true,
+    },
+    {
+      id: '2',
+      title: 'Payment received',
+      body: 'KES 2,500 payment recorded for ACC-123456.',
+      time: '15 min ago',
+      unread: true,
+    },
+    {
+      id: '3',
+      title: 'Service health',
+      body: 'All core services are operating normally.',
+      time: '1 hr ago',
+      unread: false,
+    },
+  ];
+
+  const hasUnreadAdminNotifications = adminNotifications.some((n) => n.unread);
 
   return (
     <BrowserRouter>
@@ -45,13 +72,63 @@ const AppRoot: React.FC = () => {
               )}
             </div>
             <nav className="flex items-center gap-3 text-sm">
-              <button
-                type="button"
-                className="relative inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800"
-                aria-label="Notifications"
-              >
-                <FiBell className="h-4 w-4" />
-              </button>
+              <div className="relative">
+                <button
+                  type="button"
+                  className="relative inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800"
+                  aria-label="Notifications"
+                  aria-expanded={adminNotificationsOpen}
+                  onClick={() => setAdminNotificationsOpen((open) => !open)}
+                >
+                  <FiBell className="h-4 w-4" />
+                  {hasUnreadAdminNotifications && (
+                    <span className="absolute -top-0.5 -right-0.5 inline-flex h-2.5 w-2.5 items-center justify-center rounded-full bg-emerald-500 ring-1 ring-slate-900" />
+                  )}
+                </button>
+                {adminNotificationsOpen && (
+                  <div className="absolute right-0 mt-2 w-72 rounded-lg border border-slate-800 bg-slate-950 shadow-xl text-xs z-40">
+                    <div className="flex items-center justify-between px-3 py-2 border-b border-slate-800">
+                      <div>
+                        <p className="text-[11px] font-semibold text-slate-100 tracking-wide uppercase">Notifications</p>
+                        <p className="text-[10px] text-slate-400">Recent activity in your ISP console</p>
+                      </div>
+                      {hasUnreadAdminNotifications && (
+                        <span className="inline-flex items-center justify-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300 border border-emerald-500/40">
+                          New
+                        </span>
+                      )}
+                    </div>
+                    <ul className="max-h-64 overflow-y-auto divide-y divide-slate-800">
+                      {adminNotifications.map((note) => (
+                        <li key={note.id} className="px-3 py-2 hover:bg-slate-900 cursor-pointer">
+                          <div className="flex items-start gap-2">
+                            <span
+                              className={`mt-0.5 h-1.5 w-1.5 rounded-full ${
+                                note.unread ? 'bg-emerald-400' : 'bg-slate-600'
+                              }`}
+                            />
+                            <div className="flex-1">
+                              <p className="text-[11px] font-semibold text-slate-100">{note.title}</p>
+                              <p className="text-[11px] text-slate-400 line-clamp-2">{note.body}</p>
+                              <p className="mt-0.5 text-[10px] text-slate-500">{note.time}</p>
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="px-3 py-2 border-t border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
+                      <span>Notification center is mock-only for now.</span>
+                      <button
+                        type="button"
+                        className="text-emerald-300 hover:text-emerald-200 font-medium"
+                        onClick={() => setAdminNotificationsOpen(false)}
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
               <Link
                 to={role === 'admin' ? '/account/profile' : '/admin/login'}
                 className="relative inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800"
@@ -65,13 +142,7 @@ const AppRoot: React.FC = () => {
 
         {role === 'admin' && adminMobileNavOpen && (
           <div className="fixed inset-0 z-40 flex md:hidden">
-            <button
-              type="button"
-              className="flex-1 bg-black/60"
-              aria-label="Close navigation overlay"
-              onClick={() => setAdminMobileNavOpen(false)}
-            />
-            <div className="relative w-4/5 max-w-xs bg-slate-950 border-l border-slate-800 shadow-xl flex flex-col transform transition-transform duration-200 ease-out translate-x-0">
+            <div className="relative w-4/5 max-w-xs bg-slate-950 border-r border-slate-800 shadow-xl flex flex-col transform transition-transform duration-200 ease-out translate-x-0">
               <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
                 <span className="text-xs font-semibold tracking-wide text-slate-400 uppercase">
                   Admin Navigation
@@ -130,6 +201,12 @@ const AppRoot: React.FC = () => {
                 })}
               </div>
             </div>
+            <button
+              type="button"
+              className="flex-1 bg-black/60"
+              aria-label="Close navigation overlay"
+              onClick={() => setAdminMobileNavOpen(false)}
+            />
           </div>
         )}
 

@@ -213,13 +213,7 @@ const SubscriberDashboard: React.FC<Props> = ({ subscriberId }) => {
     <>
       {isNavOpen && (
         <div className="fixed inset-0 z-40 flex md:hidden">
-          <button
-            type="button"
-            className="flex-1 bg-black/60"
-            aria-label="Close navigation overlay"
-            onClick={() => setIsNavOpen(false)}
-          />
-          <div className="relative w-4/5 max-w-xs bg-slate-950 border-l border-slate-800 shadow-xl flex flex-col transform transition-transform duration-200 ease-out translate-x-0">
+          <div className="relative w-4/5 max-w-xs bg-slate-950 border-r border-slate-800 shadow-xl flex flex-col transform transition-transform duration-200 ease-out translate-x-0">
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
               <span className="text-xs font-semibold tracking-wide text-slate-400 uppercase">
                 Subscriber Navigation
@@ -305,6 +299,13 @@ const SubscriberDashboard: React.FC<Props> = ({ subscriberId }) => {
                 Support
               </button>
             </nav>
+          </div>
+          <button
+            type="button"
+            className="flex-1 bg-black/60"
+            aria-label="Close navigation overlay"
+            onClick={() => setIsNavOpen(false)}
+          />
           </div>
         </div>
       )}
@@ -620,7 +621,8 @@ const SubscriberDashboard: React.FC<Props> = ({ subscriberId }) => {
               </div>
               <button
                 type="submit"
-                className="inline-flex items-center justify-center rounded border border-sky-500/60 bg-sky-600/20 px-3 py-1.5 text-xs font-medium text-sky-200 hover:bg-sky-600/30"
+                disabled={!supportName.trim() || !supportEmail.trim() || !supportMessage.trim()}
+                className="inline-flex items-center justify-center rounded border border-sky-500/60 bg-sky-600/20 px-3 py-1.5 text-xs font-medium text-sky-200 hover:bg-sky-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Send Message
               </button>

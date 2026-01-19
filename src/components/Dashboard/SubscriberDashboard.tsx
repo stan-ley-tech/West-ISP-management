@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Card } from '../UI/Card';
-import { FiHome, FiBarChart2, FiLayers, FiCreditCard, FiHelpCircle, FiMenu, FiX } from 'react-icons/fi';
+import { FiMenu, FiX } from 'react-icons/fi';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -100,6 +100,16 @@ const SubscriberDashboard: React.FC<Props> = ({ subscriberId }) => {
 
   const [isNavOpen, setIsNavOpen] = useState(false);
 
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<{
+    name: string;
+    price: string;
+    duration: string;
+  } | null>(null);
+  const [mpesaNumber, setMpesaNumber] = useState('');
+  const [mpesaPin, setMpesaPin] = useState('');
+  const [upgradeSuccess, setUpgradeSuccess] = useState<string | null>(null);
+
   const handleSupportSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (!supportName.trim() || !supportEmail.trim() || !supportMessage.trim()) {
@@ -107,6 +117,8 @@ const SubscriberDashboard: React.FC<Props> = ({ subscriberId }) => {
     }
     // In a real app, this would POST to /support/tickets
     setSupportSent(true);
+    setSupportName('');
+    setSupportEmail('');
     setSupportMessage('');
   };
 
@@ -177,111 +189,202 @@ const SubscriberDashboard: React.FC<Props> = ({ subscriberId }) => {
     container.scrollTo({ top: offsetTop - 8, behavior: 'smooth' });
   };
 
+  const openUpgradeModal = (plan: { name: string; price: string; duration: string }) => {
+    setSelectedPlan(plan);
+    setMpesaNumber('');
+    setMpesaPin('');
+    setIsUpgradeModalOpen(true);
+  };
+
+  const handleUpgradeSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!mpesaNumber.trim() || !mpesaPin.trim()) {
+      return;
+    }
+    // Mock only: in a real app this would trigger an Mpesa STK push
+    setIsUpgradeModalOpen(false);
+    setSelectedPlan(null);
+    setMpesaNumber('');
+    setMpesaPin('');
+    setUpgradeSuccess('Your plan upgrade request has been submitted (mock only).');
+  };
+
   return (
-    <div className="max-w-6xl mx-auto py-4 md:grid md:grid-cols-[200px,minmax(0,1fr)] md:gap-6">
-      <aside className="mb-4 md:mb-0 md:sticky md:top-4 self-start">
-        <div className="flex items-center justify-between md:block mb-2 md:mb-4">
-          <h1 className="text-lg font-semibold tracking-tight">Subscriber Portal</h1>
+    <>
+      {isNavOpen && (
+        <div className="fixed inset-0 z-40 flex md:hidden">
           <button
             type="button"
-            className="inline-flex h-8 w-8 items-center justify-center rounded border border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800 md:hidden"
-            aria-label="Toggle navigation"
-            onClick={() => setIsNavOpen((open) => !open)}
-          >
-            {isNavOpen ? <FiX className="h-4 w-4" /> : <FiMenu className="h-4 w-4" />}
-          </button>
+            className="flex-1 bg-black/60"
+            aria-label="Close navigation overlay"
+            onClick={() => setIsNavOpen(false)}
+          />
+          <div className="relative w-4/5 max-w-xs bg-slate-950 border-l border-slate-800 shadow-xl flex flex-col transform transition-transform duration-200 ease-out translate-x-0">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
+              <span className="text-xs font-semibold tracking-wide text-slate-400 uppercase">
+                Subscriber Navigation
+              </span>
+              <button
+                type="button"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"
+                aria-label="Close navigation"
+                onClick={() => setIsNavOpen(false)}
+              >
+                <FiX className="h-4 w-4" />
+              </button>
+            </div>
+            <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1 text-sm" aria-label="Subscriber sections">
+              <button
+                type="button"
+                onClick={() => {
+                  scrollToSection('welcome');
+                  setIsNavOpen(false);
+                }}
+                className={`block w-full rounded-md px-3 py-2 text-left text-xs ${
+                  activeSection === 'welcome'
+                    ? 'bg-slate-900 text-slate-50 border border-emerald-500/60'
+                    : 'text-slate-200 border border-transparent hover:bg-slate-900'
+                }`}
+              >
+                Overview
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  scrollToSection('usage');
+                  setIsNavOpen(false);
+                }}
+                className={`block w-full rounded-md px-3 py-2 text-left text-xs ${
+                  activeSection === 'usage'
+                    ? 'bg-slate-900 text-slate-50 border border-emerald-500/60'
+                    : 'text-slate-200 border border-transparent hover:bg-slate-900'
+                }`}
+              >
+                Monthly Usage
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  scrollToSection('plans');
+                  setIsNavOpen(false);
+                }}
+                className={`block w-full rounded-md px-3 py-2 text-left text-xs ${
+                  activeSection === 'plans'
+                    ? 'bg-slate-900 text-slate-50 border border-emerald-500/60'
+                    : 'text-slate-200 border border-transparent hover:bg-slate-900'
+                }`}
+              >
+                Plans
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  scrollToSection('payments');
+                  setIsNavOpen(false);
+                }}
+                className={`block w-full rounded-md px-3 py-2 text-left text-xs ${
+                  activeSection === 'payments'
+                    ? 'bg-slate-900 text-slate-50 border border-emerald-500/60'
+                    : 'text-slate-200 border border-transparent hover:bg-slate-900'
+                }`}
+              >
+                Payments
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  scrollToSection('support');
+                  setIsNavOpen(false);
+                }}
+                className={`block w-full rounded-md px-3 py-2 text-left text-xs ${
+                  activeSection === 'support'
+                    ? 'bg-slate-900 text-slate-50 border border-emerald-500/60'
+                    : 'text-slate-200 border border-transparent hover:bg-slate-900'
+                }`}
+              >
+                Support
+              </button>
+            </nav>
+          </div>
         </div>
-        <nav
-          className={`${isNavOpen ? 'block' : 'hidden'} md:block space-y-1 text-sm`}
-          aria-label="Subscriber sections"
-        >
-          <a
-            href="#welcome"
-            onClick={(e) => {
-              e.preventDefault();
-              scrollToSection('welcome');
-              setIsNavOpen(false);
-            }}
-            className={`flex items-center gap-2 rounded-md px-3 py-1 border text-xs ${
-              activeSection === 'welcome'
-                ? 'bg-slate-900 text-slate-50 border-emerald-500/60'
-                : 'text-slate-200 border-slate-800 hover:bg-slate-900'
-            }`}
-          >
-            <FiHome className="h-3 w-3" />
-            <span>Overview</span>
-          </a>
-          <a
-            href="#usage"
-            onClick={(e) => {
-              e.preventDefault();
-              scrollToSection('usage');
-              setIsNavOpen(false);
-            }}
-            className={`flex items-center gap-2 rounded-md px-3 py-1 border text-xs ${
-              activeSection === 'usage'
-                ? 'bg-slate-900 text-slate-50 border-emerald-500/60'
-                : 'text-slate-200 border-slate-800 hover:bg-slate-900'
-            }`}
-          >
-            <FiBarChart2 className="h-3 w-3" />
-            <span>Monthly Usage</span>
-          </a>
-          <a
-            href="#plans"
-            onClick={(e) => {
-              e.preventDefault();
-              scrollToSection('plans');
-              setIsNavOpen(false);
-            }}
-            className={`flex items-center gap-2 rounded-md px-3 py-1 border text-xs ${
-              activeSection === 'plans'
-                ? 'bg-slate-900 text-slate-50 border-emerald-500/60'
-                : 'text-slate-200 border-slate-800 hover:bg-slate-900'
-            }`}
-          >
-            <FiLayers className="h-3 w-3" />
-            <span>Plans</span>
-          </a>
-          <a
-            href="#payments"
-            onClick={(e) => {
-              e.preventDefault();
-              scrollToSection('payments');
-              setIsNavOpen(false);
-            }}
-            className={`flex items-center gap-2 rounded-md px-3 py-1 border text-xs ${
-              activeSection === 'payments'
-                ? 'bg-slate-900 text-slate-50 border-emerald-500/60'
-                : 'text-slate-200 border-slate-800 hover:bg-slate-900'
-            }`}
-          >
-            <FiCreditCard className="h-3 w-3" />
-            <span>Payments</span>
-          </a>
-          <a
-            href="#support"
-            onClick={(e) => {
-              e.preventDefault();
-              scrollToSection('support');
-              setIsNavOpen(false);
-            }}
-            className={`flex items-center gap-2 rounded-md px-3 py-1 border text-xs ${
-              activeSection === 'support'
-                ? 'bg-slate-900 text-slate-50 border-emerald-500/60'
-                : 'text-slate-200 border-slate-800 hover:bg-slate-900'
-            }`}
-          >
-            <FiHelpCircle className="h-3 w-3" />
-            <span>Support</span>
-          </a>
-        </nav>
-      </aside>
+      )}
 
-      <div
-        ref={contentRef}
-        className="space-y-8 md:max-h-[calc(100vh-5rem)] md:overflow-y-auto pr-2"
-      >
+      <div className="max-w-6xl mx-auto py-4 md:grid md:grid-cols-[200px,minmax(0,1fr)] md:gap-6">
+        <aside className="mb-4 md:mb-0 md:sticky md:top-4 self-start">
+          <div className="flex items-center justify-between md:block mb-2 md:mb-4">
+            <h1 className="text-lg font-semibold tracking-tight">Subscriber Portal</h1>
+            <button
+              type="button"
+              className="inline-flex h-8 w-8 items-center justify-center rounded border border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800 md:hidden"
+              aria-label="Open navigation"
+              onClick={() => setIsNavOpen(true)}
+            >
+              <FiMenu className="h-4 w-4" />
+            </button>
+          </div>
+          <nav className="hidden md:block space-y-1 text-sm" aria-label="Subscriber sections">
+            <button
+              type="button"
+              onClick={() => scrollToSection('welcome')}
+              className={`flex w-full items-center rounded-md px-3 py-1 border text-xs ${
+                activeSection === 'welcome'
+                  ? 'bg-slate-900 text-slate-50 border-emerald-500/60'
+                  : 'text-slate-200 border-slate-800 hover:bg-slate-900'
+              }`}
+            >
+              <span>Overview</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection('usage')}
+              className={`flex w-full items-center rounded-md px-3 py-1 border text-xs ${
+                activeSection === 'usage'
+                  ? 'bg-slate-900 text-slate-50 border-emerald-500/60'
+                  : 'text-slate-200 border-slate-800 hover:bg-slate-900'
+              }`}
+            >
+              <span>Monthly Usage</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection('plans')}
+              className={`flex w-full items-center rounded-md px-3 py-1 border text-xs ${
+                activeSection === 'plans'
+                  ? 'bg-slate-900 text-slate-50 border-emerald-500/60'
+                  : 'text-slate-200 border-slate-800 hover:bg-slate-900'
+              }`}
+            >
+              <span>Plans</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection('payments')}
+              className={`flex w-full items-center rounded-md px-3 py-1 border text-xs ${
+                activeSection === 'payments'
+                  ? 'bg-slate-900 text-slate-50 border-emerald-500/60'
+                  : 'text-slate-200 border-slate-800 hover:bg-slate-900'
+              }`}
+            >
+              <span>Payments</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection('support')}
+              className={`flex w-full items-center rounded-md px-3 py-1 border text-xs ${
+                activeSection === 'support'
+                  ? 'bg-slate-900 text-slate-50 border-emerald-500/60'
+                  : 'text-slate-200 border-slate-800 hover:bg-slate-900'
+              }`}
+            >
+              <span>Support</span>
+            </button>
+          </nav>
+        </aside>
+
+        <div
+          ref={contentRef}
+          className="space-y-8 md:max-h-[calc(100vh-5rem)] md:overflow-y-auto pr-2"
+        >
 
       {/* 1. Welcome card */}
       <section id="welcome" ref={welcomeRef} className="pb-2">
@@ -388,8 +491,6 @@ const SubscriberDashboard: React.FC<Props> = ({ subscriberId }) => {
           <Card title="Current Plan">
             <div className="space-y-1 text-sm text-slate-200">
               <p className="font-medium text-emerald-200">{plans.current.name}</p>
-              <p className="text-slate-300">{plans.current.speed}</p>
-              <p className="text-slate-300">{plans.current.cap}</p>
               <p className="text-slate-200">{plans.current.price}</p>
               <p className="text-slate-400 text-xs">{plans.current.duration}</p>
             </div>
@@ -397,13 +498,17 @@ const SubscriberDashboard: React.FC<Props> = ({ subscriberId }) => {
           {plans.options.map((plan) => (
             <Card key={plan.name} title={plan.name}>
               <div className="space-y-1 text-sm text-slate-200">
-                <p className="text-slate-300">{plan.speed}</p>
-                <p className="text-slate-300">{plan.cap}</p>
                 <p className="text-slate-200">{plan.price}</p>
                 <p className="text-slate-400 text-xs">{plan.duration}</p>
               </div>
               <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                <button className="rounded border border-emerald-500/60 bg-emerald-600/20 px-3 py-1 text-emerald-200 hover:bg-emerald-600/30">
+                <button
+                  type="button"
+                  onClick={() =>
+                    openUpgradeModal({ name: plan.name, price: plan.price, duration: plan.duration })
+                  }
+                  className="rounded border border-emerald-500/60 bg-emerald-600/20 px-3 py-1 text-emerald-200 hover:bg-emerald-600/30"
+                >
                   Upgrade Plan
                 </button>
               </div>
@@ -453,12 +558,23 @@ const SubscriberDashboard: React.FC<Props> = ({ subscriberId }) => {
                 For any issues with your connection or billing, reach out to our support team and we will be happy to
                 help.
               </p>
-              <p>
-                <span className="text-slate-400">Email:</span> support@yourisp.example
-              </p>
-              <p>
-                <span className="text-slate-400">Phone / WhatsApp:</span> +1 (555) 123-4567
-              </p>
+              <div className="space-y-1 text-sm">
+                <div>
+                  <span className="text-slate-400 mr-1">Email:</span>
+                  <a
+                    href="mailto:support@yourisp.example"
+                    className="text-sky-300 hover:underline break-all"
+                  >
+                    support@yourisp.example
+                  </a>
+                </div>
+                <div>
+                  <span className="text-slate-400 mr-1">Phone:</span>
+                  <a href="tel:+15551234567" className="text-sky-300 hover:underline">
+                    +1 (555) 123-4567
+                  </a>
+                </div>
+              </div>
               <p className="text-xs text-slate-400">
                 For urgent issues like no connectivity or payment problems, please reach out using the email or phone
                 contacts above so we can assist you as quickly as possible.
@@ -517,8 +633,72 @@ const SubscriberDashboard: React.FC<Props> = ({ subscriberId }) => {
           </div>
         </Card>
       </section>
+        </div>
       </div>
-    </div>
+
+      {isUpgradeModalOpen && selectedPlan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-sm rounded-lg border border-slate-800 bg-slate-950 px-4 py-5 text-sm shadow-xl">
+            <h3 className="text-base font-semibold text-slate-100 mb-2">Upgrade Plan</h3>
+            <p className="text-xs text-slate-400 mb-3">
+              You are upgrading to{' '}
+              <span className="font-semibold text-slate-200">{selectedPlan.name}</span>. Enter your Mpesa details to
+              simulate a push (mock only).
+            </p>
+            <form onSubmit={handleUpgradeSubmit} className="space-y-3">
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Mpesa phone number</label>
+                <input
+                  type="tel"
+                  value={mpesaNumber}
+                  onChange={(e) => setMpesaNumber(e.target.value)}
+                  className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-100"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Mpesa PIN</label>
+                <input
+                  type="password"
+                  value={mpesaPin}
+                  onChange={(e) => setMpesaPin(e.target.value)}
+                  className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-100"
+                />
+              </div>
+              <div className="flex items-center justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setIsUpgradeModalOpen(false)}
+                  className="rounded border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-900"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 text-xs font-medium text-white"
+                >
+                  Confirm upgrade
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {upgradeSuccess && (
+        <div className="fixed bottom-4 inset-x-0 z-40 flex justify-center px-4">
+          <div className="max-w-sm rounded-md border border-emerald-500/70 bg-slate-900/95 px-3 py-2 text-xs text-emerald-100 shadow-lg flex items-center justify-between gap-3">
+            <span>{upgradeSuccess}</span>
+            <button
+              type="button"
+              onClick={() => setUpgradeSuccess(null)}
+              className="text-emerald-300 hover:text-emerald-100 text-[11px]"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

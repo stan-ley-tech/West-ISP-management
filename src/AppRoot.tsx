@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate } from 'react-router-dom';
-import { FiBell, FiUser, FiMenu } from 'react-icons/fi';
+import { FiBell, FiUser, FiMenu, FiX } from 'react-icons/fi';
 import LandingPage from './pages/LandingPage';
 import DashboardPage from './pages/DashboardPage';
-import Sidebar from './components/Layout/Sidebar';
+import Sidebar, { ADMIN_SECTIONS } from './components/Layout/Sidebar';
 import SubscribersPage from './pages/SubscribersPage';
 import SubscribersOnlineSessionsPage from './pages/SubscribersOnlineSessionsPage';
 import AddSubscriberPage from './pages/AddSubscriberPage';
@@ -22,29 +22,29 @@ export type UserRole = 'admin' | 'subscriber';
 const AppRoot: React.FC = () => {
   const { role, subscriberId } = useAuth();
   const [adminMobileNavOpen, setAdminMobileNavOpen] = useState(false);
+  const [adminMobileSectionOpen, setAdminMobileSectionOpen] = useState<string | null>(null);
 
   return (
     <BrowserRouter>
       <div className="h-screen bg-slate-950 text-slate-100 flex flex-col overflow-hidden">
         {role !== 'subscriber' && (
-          <header className="sticky top-0 z-20 border-b border-slate-800 px-4 py-3 flex items-center justify-between bg-slate-950">
-            <Link
-              to={role === 'admin' ? '/dashboard' : '/login'}
-              className="font-semibold text-lg"
-            >
-              ISP Management Console
-            </Link>
-            <nav className="flex items-center gap-3 text-sm">
+          <header className="sticky top-0 z-30 border-b border-slate-800 px-4 py-3 flex items-center justify-between bg-slate-950">
+            <div className="flex items-center gap-2">
               {role === 'admin' && (
                 <button
                   type="button"
                   className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 md:hidden"
-                  aria-label="Toggle navigation"
-                  onClick={() => setAdminMobileNavOpen((open) => !open)}
+                  aria-label="Open navigation"
+                  onClick={() => {
+                    setAdminMobileNavOpen(true);
+                    setAdminMobileSectionOpen(null);
+                  }}
                 >
                   <FiMenu className="h-4 w-4" />
                 </button>
               )}
+            </div>
+            <nav className="flex items-center gap-3 text-sm">
               <button
                 type="button"
                 className="relative inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800"
@@ -64,58 +64,72 @@ const AppRoot: React.FC = () => {
         )}
 
         {role === 'admin' && adminMobileNavOpen && (
-          <div className="md:hidden border-b border-slate-800 bg-slate-950 px-4 py-2">
-            <nav className="flex flex-col gap-1 text-sm">
-              <Link
-                to="/dashboard"
-                onClick={() => setAdminMobileNavOpen(false)}
-                className="py-1 text-slate-200 hover:text-emerald-400"
-              >
-                Dashboard
-              </Link>
-              <Link
-                to="/subscribers"
-                onClick={() => setAdminMobileNavOpen(false)}
-                className="py-1 text-slate-200 hover:text-emerald-400"
-              >
-                Subscribers
-              </Link>
-              <Link
-                to="/subscriptions/active"
-                onClick={() => setAdminMobileNavOpen(false)}
-                className="py-1 text-slate-200 hover:text-emerald-400"
-              >
-                Subscriptions
-              </Link>
-              <Link
-                to="/plans"
-                onClick={() => setAdminMobileNavOpen(false)}
-                className="py-1 text-slate-200 hover:text-emerald-400"
-              >
-                Plans &amp; Services
-              </Link>
-              <Link
-                to="/billing/payments"
-                onClick={() => setAdminMobileNavOpen(false)}
-                className="py-1 text-slate-200 hover:text-emerald-400"
-              >
-                Billing &amp; Payments
-              </Link>
-              <Link
-                to="/analytics/usage"
-                onClick={() => setAdminMobileNavOpen(false)}
-                className="py-1 text-slate-200 hover:text-emerald-400"
-              >
-                Usage &amp; Analytics
-              </Link>
-              <Link
-                to="/account/profile"
-                onClick={() => setAdminMobileNavOpen(false)}
-                className="py-1 text-slate-200 hover:text-emerald-400"
-              >
-                Profile &amp; Settings
-              </Link>
-            </nav>
+          <div className="fixed inset-0 z-40 flex md:hidden">
+            <button
+              type="button"
+              className="flex-1 bg-black/60"
+              aria-label="Close navigation overlay"
+              onClick={() => setAdminMobileNavOpen(false)}
+            />
+            <div className="relative w-4/5 max-w-xs bg-slate-950 border-l border-slate-800 shadow-xl flex flex-col transform transition-transform duration-200 ease-out translate-x-0">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
+                <span className="text-xs font-semibold tracking-wide text-slate-400 uppercase">
+                  Admin Navigation
+                </span>
+                <button
+                  type="button"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800"
+                  aria-label="Close navigation"
+                  onClick={() => setAdminMobileNavOpen(false)}
+                >
+                  <FiX className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2 text-sm">
+                {ADMIN_SECTIONS.map((section) => {
+                  const isOpen = adminMobileSectionOpen === section.id;
+                  return (
+                    <div key={section.id} className="border border-slate-800 rounded-lg">
+                      <button
+                        type="button"
+                        className="flex w-full items-center justify-between px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-200"
+                        onClick={() =>
+                          setAdminMobileSectionOpen((prev) => (prev === section.id ? null : section.id))
+                        }
+                      >
+                        <span>{section.label}</span>
+                        <span className="text-slate-500 text-[10px]">{isOpen ? 'Hide' : 'Show'}</span>
+                      </button>
+                      {isOpen && section.items.length > 0 && (
+                        <nav className="border-t border-slate-800 bg-slate-950/80">
+                          {section.items.map((item) => (
+                            <Link
+                              key={item.key}
+                              to={item.path || '#'}
+                              onClick={() => setAdminMobileNavOpen(false)}
+                              className="block px-4 py-2 text-[11px] text-slate-200 hover:bg-slate-900 hover:text-emerald-400"
+                            >
+                              {item.label}
+                            </Link>
+                          ))}
+                        </nav>
+                      )}
+                      {isOpen && section.items.length === 0 && (
+                        <nav className="border-t border-slate-800 bg-slate-950/80">
+                          <Link
+                            to="/dashboard"
+                            onClick={() => setAdminMobileNavOpen(false)}
+                            className="block px-4 py-2 text-[11px] text-slate-200 hover:bg-slate-900 hover:text-emerald-400"
+                          >
+                            Overview
+                          </Link>
+                        </nav>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         )}
 

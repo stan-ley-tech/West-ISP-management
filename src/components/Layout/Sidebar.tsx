@@ -34,7 +34,7 @@ interface SidebarSection {
   items: SidebarItem[];
 }
 
-const ADMIN_SECTIONS: SidebarSection[] = [
+export const ADMIN_SECTIONS: SidebarSection[] = [
   {
     id: 'dashboard',
     label: 'Dashboard',
